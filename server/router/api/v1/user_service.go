@@ -266,7 +266,7 @@ func (s *APIV1Service) DeleteUser(ctx context.Context, request *v1pb.DeleteUserR
 
 func getDefaultUserSetting() *v1pb.UserSetting {
 	return &v1pb.UserSetting{
-		Locale:         "en",
+		Locale:         "zh",
 		Appearance:     "system",
 		MemoVisibility: "PRIVATE",
 	}

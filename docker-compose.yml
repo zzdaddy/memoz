@@ -1,7 +1,7 @@
 services:
   memos:
-    image: neosmemo/memos:0.22.3
-    container_name: memos
+    image: gnakdogg/memoz:latest
+    container_name: memoz
     volumes:
       - /home/memoz/:/var/opt/memos
     ports:

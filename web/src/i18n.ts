@@ -31,9 +31,9 @@ export const locales = [
 ] as const;
 
 const fallbacks = {
+  zh: ["zh-Hans", "en"],
   "zh-HK": ["zh-Hant", "en"],
   "zh-TW": ["zh-Hant", "en"],
-  zh: ["zh-Hans", "en"],
 } as FallbackLngObjList;
 
 const LazyImportPlugin: BackendModule = {
@@ -60,7 +60,7 @@ i18n
     },
     fallbackLng: {
       ...fallbacks,
-      ...{ default: ["en"] },
+      ...{ default: ["zh"] },
     } as FallbackLng,
   });
 

@@ -18,7 +18,7 @@ const getDefaultState = (): State => ({
 
 const getDefaultUserSetting = () => {
   return UserSetting.fromPartial({
-    locale: "en",
+    locale: "zh",
     appearance: "auto",
     memoVisibility: "PRIVATE",
   });
