@@ -6,6 +6,8 @@ COPY . .
 
 WORKDIR /frontend-build/web
 
+ENV NODE_OPTIONS=--max-old-space-size=4096
+
 RUN corepack enable && pnpm i --frozen-lockfile
 
 RUN pnpm build
