@@ -2,7 +2,7 @@
   "name": "memos",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "node --max_old_space_size=2048 && tsc && vite build",
     "release": "vite build --mode release --outDir=../server/router/frontend/dist --emptyOutDir",
     "lint": "eslint --ext .js,.ts,.tsx, src",
     "type-check": "tsc --noEmit",
