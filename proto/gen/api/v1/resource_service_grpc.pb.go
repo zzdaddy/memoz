@@ -23,8 +23,8 @@ const _ = grpc.SupportPackageIsVersion8
 const (
 	ResourceService_CreateResource_FullMethodName    = "/memos.api.v1.ResourceService/CreateResource"
 	ResourceService_ListResources_FullMethodName     = "/memos.api.v1.ResourceService/ListResources"
-	ResourceService_SearchResources_FullMethodName   = "/memos.api.v1.ResourceService/SearchResources"
 	ResourceService_GetResource_FullMethodName       = "/memos.api.v1.ResourceService/GetResource"
+	ResourceService_GetResourceByUid_FullMethodName  = "/memos.api.v1.ResourceService/GetResourceByUid"
 	ResourceService_GetResourceBinary_FullMethodName = "/memos.api.v1.ResourceService/GetResourceBinary"
 	ResourceService_UpdateResource_FullMethodName    = "/memos.api.v1.ResourceService/UpdateResource"
 	ResourceService_DeleteResource_FullMethodName    = "/memos.api.v1.ResourceService/DeleteResource"
@@ -38,10 +38,10 @@ type ResourceServiceClient interface {
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*Resource, error)
 	// ListResources lists all resources.
 	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
-	// SearchResources searches memos.
-	SearchResources(ctx context.Context, in *SearchResourcesRequest, opts ...grpc.CallOption) (*SearchResourcesResponse, error)
 	// GetResource returns a resource by name.
 	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*Resource, error)
+	// GetResourceByUid returns a resource by uid.
+	GetResourceByUid(ctx context.Context, in *GetResourceByUidRequest, opts ...grpc.CallOption) (*Resource, error)
 	// GetResourceBinary returns a resource binary by name.
 	GetResourceBinary(ctx context.Context, in *GetResourceBinaryRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	// UpdateResource updates a resource.
@@ -78,20 +78,20 @@ func (c *resourceServiceClient) ListResources(ctx context.Context, in *ListResou
 	return out, nil
 }
 
-func (c *resourceServiceClient) SearchResources(ctx context.Context, in *SearchResourcesRequest, opts ...grpc.CallOption) (*SearchResourcesResponse, error) {
+func (c *resourceServiceClient) GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*Resource, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SearchResourcesResponse)
-	err := c.cc.Invoke(ctx, ResourceService_SearchResources_FullMethodName, in, out, cOpts...)
+	out := new(Resource)
+	err := c.cc.Invoke(ctx, ResourceService_GetResource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *resourceServiceClient) GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*Resource, error) {
+func (c *resourceServiceClient) GetResourceByUid(ctx context.Context, in *GetResourceByUidRequest, opts ...grpc.CallOption) (*Resource, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Resource)
-	err := c.cc.Invoke(ctx, ResourceService_GetResource_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ResourceService_GetResourceByUid_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,10 +136,10 @@ type ResourceServiceServer interface {
 	CreateResource(context.Context, *CreateResourceRequest) (*Resource, error)
 	// ListResources lists all resources.
 	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)
-	// SearchResources searches memos.
-	SearchResources(context.Context, *SearchResourcesRequest) (*SearchResourcesResponse, error)
 	// GetResource returns a resource by name.
 	GetResource(context.Context, *GetResourceRequest) (*Resource, error)
+	// GetResourceByUid returns a resource by uid.
+	GetResourceByUid(context.Context, *GetResourceByUidRequest) (*Resource, error)
 	// GetResourceBinary returns a resource binary by name.
 	GetResourceBinary(context.Context, *GetResourceBinaryRequest) (*httpbody.HttpBody, error)
 	// UpdateResource updates a resource.
@@ -159,11 +159,11 @@ func (UnimplementedResourceServiceServer) CreateResource(context.Context, *Creat
 func (UnimplementedResourceServiceServer) ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListResources not implemented")
 }
-func (UnimplementedResourceServiceServer) SearchResources(context.Context, *SearchResourcesRequest) (*SearchResourcesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchResources not implemented")
-}
 func (UnimplementedResourceServiceServer) GetResource(context.Context, *GetResourceRequest) (*Resource, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetResource not implemented")
+}
+func (UnimplementedResourceServiceServer) GetResourceByUid(context.Context, *GetResourceByUidRequest) (*Resource, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetResourceByUid not implemented")
 }
 func (UnimplementedResourceServiceServer) GetResourceBinary(context.Context, *GetResourceBinaryRequest) (*httpbody.HttpBody, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetResourceBinary not implemented")
@@ -223,24 +223,6 @@ func _ResourceService_ListResources_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ResourceService_SearchResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchResourcesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServiceServer).SearchResources(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ResourceService_SearchResources_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServiceServer).SearchResources(ctx, req.(*SearchResourcesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ResourceService_GetResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetResourceRequest)
 	if err := dec(in); err != nil {
@@ -255,6 +237,24 @@ func _ResourceService_GetResource_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ResourceServiceServer).GetResource(ctx, req.(*GetResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceService_GetResourceByUid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetResourceByUidRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServiceServer).GetResourceByUid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ResourceService_GetResourceByUid_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServiceServer).GetResourceByUid(ctx, req.(*GetResourceByUidRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -329,12 +329,12 @@ var ResourceService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ResourceService_ListResources_Handler,
 		},
 		{
-			MethodName: "SearchResources",
-			Handler:    _ResourceService_SearchResources_Handler,
-		},
-		{
 			MethodName: "GetResource",
 			Handler:    _ResourceService_GetResource_Handler,
+		},
+		{
+			MethodName: "GetResourceByUid",
+			Handler:    _ResourceService_GetResourceByUid_Handler,
 		},
 		{
 			MethodName: "GetResourceBinary",

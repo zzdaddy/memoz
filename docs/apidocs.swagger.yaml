@@ -238,9 +238,51 @@ paths:
           type: string
       tags:
         - MarkdownService
-  /api/v1/markdown/parse:
+  /api/v1/markdown/node:restore:
     post:
-      summary: Parses the given markdown content and returns a list of nodes.
+      summary: RestoreMarkdownNodes restores the given nodes to markdown content.
+      operationId: MarkdownService_RestoreMarkdownNodes
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1RestoreMarkdownNodesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1RestoreMarkdownNodesRequest'
+      tags:
+        - MarkdownService
+  /api/v1/markdown/node:stringify:
+    post:
+      summary: StringifyMarkdownNodes stringify the given nodes to plain text content.
+      operationId: MarkdownService_StringifyMarkdownNodes
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1StringifyMarkdownNodesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1StringifyMarkdownNodesRequest'
+      tags:
+        - MarkdownService
+  /api/v1/markdown:parse:
+    post:
+      summary: ParseMarkdown parses the given markdown content and returns a list of nodes.
       operationId: MarkdownService_ParseMarkdown
       responses:
         "200":
@@ -257,27 +299,6 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1ParseMarkdownRequest'
-      tags:
-        - MarkdownService
-  /api/v1/markdown:restore:
-    post:
-      summary: Restores the given nodes to markdown content.
-      operationId: MarkdownService_RestoreMarkdown
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1RestoreMarkdownResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/v1RestoreMarkdownRequest'
       tags:
         - MarkdownService
   /api/v1/memos:
@@ -336,39 +357,24 @@ paths:
             $ref: '#/definitions/v1CreateMemoRequest'
       tags:
         - MemoService
-  /api/v1/memos/stats:
+  /api/v1/memos:by-uid/{uid}:
     get:
-      summary: GetUserMemosStats gets stats of memos for a user.
-      operationId: MemoService_GetUserMemosStats
+      summary: GetMemoByUid gets a memo by uid
+      operationId: MemoService_GetMemoByUid
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1GetUserMemosStatsResponse'
+            $ref: '#/definitions/v1Memo'
         default:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
-        - name: name
-          description: |-
-            name is the name of the user to get stats for.
-            Format: users/{id}
-          in: query
-          required: false
-          type: string
-        - name: timezone
-          description: |-
-            timezone location
-            Format: uses tz identifier
-            https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-          in: query
-          required: false
-          type: string
-        - name: filter
-          description: Same as ListMemosRequest.filter
-          in: query
-          required: false
+        - name: uid
+          description: The uid of the memo.
+          in: path
+          required: true
           type: string
       tags:
         - MemoService
@@ -391,29 +397,6 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1ExportMemosRequest'
-      tags:
-        - MemoService
-  /api/v1/memos:search:
-    get:
-      summary: SearchMemos searches memos.
-      operationId: MemoService_SearchMemos
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1SearchMemosResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: filter
-          description: |-
-            Filter is used to filter memos returned.
-            Format: "creator == 'users/{uid}' && visibilities == ['PUBLIC', 'PROTECTED']"
-          in: query
-          required: false
-          type: string
       tags:
         - MemoService
   /api/v1/reactions/{reactionId}:
@@ -473,23 +456,24 @@ paths:
             $ref: '#/definitions/v1Resource'
       tags:
         - ResourceService
-  /api/v1/resources:search:
+  /api/v1/resources:by-uid/{uid}:
     get:
-      summary: SearchResources searches memos.
-      operationId: ResourceService_SearchResources
+      summary: GetResourceByUid returns a resource by uid.
+      operationId: ResourceService_GetResourceByUid
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1SearchResourcesResponse'
+            $ref: '#/definitions/v1Resource'
         default:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/googlerpcStatus'
       parameters:
-        - name: filter
-          in: query
-          required: false
+        - name: uid
+          description: The uid of the resource.
+          in: path
+          required: true
           type: string
       tags:
         - ResourceService
@@ -934,6 +918,9 @@ paths:
                   The name of the parent memo.
                   Format: memos/{id}
                 readOnly: true
+              snippet:
+                type: string
+                description: The snippet of the memo content. Plain text only.
       tags:
         - MemoService
   /api/v1/{name_1}:
@@ -1871,7 +1858,8 @@ definitions:
       cells:
         type: array
         items:
-          type: string
+          type: object
+          $ref: '#/definitions/v1Node'
   UserRole:
     type: string
     enum:
@@ -2089,9 +2077,9 @@ definitions:
   apiv1WorkspaceMemoRelatedSetting:
     type: object
     properties:
-      disallowPublicVisible:
+      disallowPublicVisibility:
         type: boolean
-        description: disallow_public_share disallows set memo as public visible.
+        description: disallow_public_visibility disallows set memo as public visibility.
       displayWithUpdateTime:
         type: boolean
         description: display_with_update_time orders and displays memo with update time.
@@ -2393,17 +2381,15 @@ definitions:
       content:
         type: string
         format: byte
-  v1GetUserMemosStatsResponse:
+  v1HTMLElementNode:
     type: object
     properties:
-      stats:
+      tagName:
+        type: string
+      attributes:
         type: object
         additionalProperties:
-          type: integer
-          format: int32
-        description: |-
-          stats is the stats of memo creating/updating activities.
-          key is the year-month-day string. e.g. "2020-01-01".
+          type: string
   v1HeadingNode:
     type: object
     properties:
@@ -2522,11 +2508,11 @@ definitions:
   v1ListMemoPropertiesResponse:
     type: object
     properties:
-      properties:
+      entities:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1MemoProperty'
+          $ref: '#/definitions/v1MemoPropertyEntity'
   v1ListMemoReactionsResponse:
     type: object
     properties:
@@ -2693,6 +2679,9 @@ definitions:
           The name of the parent memo.
           Format: memos/{id}
         readOnly: true
+      snippet:
+        type: string
+        description: The snippet of the memo content. Plain text only.
   v1MemoProperty:
     type: object
     properties:
@@ -2708,6 +2697,21 @@ definitions:
         type: boolean
       hasIncompleteTasks:
         type: boolean
+  v1MemoPropertyEntity:
+    type: object
+    properties:
+      name:
+        type: string
+        title: |-
+          The name of the memo property.
+          Format: memos/{id}/properties/{property_id}
+      property:
+        $ref: '#/definitions/v1MemoProperty'
+        readOnly: true
+      displayTime:
+        type: string
+        format: date-time
+        readOnly: true
   v1MemoRelation:
     type: object
     properties:
@@ -2793,6 +2797,8 @@ definitions:
         $ref: '#/definitions/v1ReferencedContentNode'
       spoilerNode:
         $ref: '#/definitions/v1SpoilerNode'
+      htmlElementNode:
+        $ref: '#/definitions/v1HTMLElementNode'
   v1NodeType:
     type: string
     enum:
@@ -2826,6 +2832,7 @@ definitions:
       - SUPERSCRIPT
       - REFERENCED_CONTENT
       - SPOILER
+      - HTML_ELEMENT
     default: NODE_UNSPECIFIED
   v1OrderedListNode:
     type: object
@@ -2933,7 +2940,7 @@ definitions:
         title: |-
           The related memo.
           Format: memos/{id}
-  v1RestoreMarkdownRequest:
+  v1RestoreMarkdownNodesRequest:
     type: object
     properties:
       nodes:
@@ -2941,7 +2948,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1Node'
-  v1RestoreMarkdownResponse:
+  v1RestoreMarkdownNodesResponse:
     type: object
     properties:
       markdown:
@@ -2953,22 +2960,6 @@ definitions:
       - ACTIVE
       - ARCHIVED
     default: ROW_STATUS_UNSPECIFIED
-  v1SearchMemosResponse:
-    type: object
-    properties:
-      memos:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1Memo'
-  v1SearchResourcesResponse:
-    type: object
-    properties:
-      resources:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1Resource'
   v1SearchUsersResponse:
     type: object
     properties:
@@ -2987,6 +2978,19 @@ definitions:
     properties:
       content:
         type: string
+  v1StringifyMarkdownNodesRequest:
+    type: object
+    properties:
+      nodes:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1Node'
+  v1StringifyMarkdownNodesResponse:
+    type: object
+    properties:
+      plainText:
+        type: string
   v1SubscriptNode:
     type: object
     properties:
@@ -3003,7 +3007,8 @@ definitions:
       header:
         type: array
         items:
-          type: string
+          type: object
+          $ref: '#/definitions/v1Node'
       delimiter:
         type: array
         items:
@@ -3144,3 +3149,6 @@ definitions:
       public:
         type: boolean
         description: public is a flag that the instance is open for other users.
+      passwordAuth:
+        type: boolean
+        description: password_auth is a flag whether the instance allows password authentication.
